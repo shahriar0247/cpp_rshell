@@ -30,19 +30,26 @@ std::tuple<string, string> execute(const std::string& command) {
 		return make_tuple("cd", "");
 	}
 	else{
+		char* buf = nullptr;
+		size_t sz = 0;
+		_dupenv_s(&buf, &sz, "TMP");
+		
+	
+	system((command + " 1> %temp%/temp 2> %temp%/temp2").c_str());
 
-	system((command + " 1> temp 2> temp2").c_str());
-
-	std::ifstream ifs("temp");
+	
+	string loc = string(buf) + "/temp";
+	std::ifstream ifs(loc);
 	std::string ret{ std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>() };
 	ifs.close(); // must close the inout stream so the file can be cleaned up
-	if (std::remove("temp") != 0) {
+	if (std::remove(loc.c_str()) != 0) {
 		perror("Error deleting temp1orary file");
 	}
-	std::ifstream ifs2("temp2");
+	loc = string(buf) + "/temp2";
+	std::ifstream ifs2(loc);
 	std::string ret2{ std::istreambuf_iterator<char>(ifs2), std::istreambuf_iterator<char>() };
 	ifs2.close(); // must close the inout stream so the file can be cleaned up
-	if (std::remove("temp2") != 0) {
+	if (std::remove(loc.c_str()) != 0) {
 		perror("Error deleting temp1orary file");
 	}
 	return make_tuple(ret, ret2);
@@ -103,8 +110,8 @@ int main()
 	// while loop: accpet and echo message back to client
 
 	char buf[100];
-	char buf2[4096];
-	
+	char buf2[409600];
+	int i;
 	while (true) {
 	
 		int bytesRecv = recv(sock, buf, 100, 0);
@@ -145,12 +152,21 @@ int main()
 
 
 	
-		char tab2[4096];
+		char tab2[409600];
 		strncpy_s(tab2, output.c_str(), sizeof(tab2));
 		tab2[sizeof(tab2) - 1] = 0;
 
+		i = sizeof(output.length());
+		cout << i;
+		char converted_number[8];
 
-	
+		sprintf_s(converted_number, "%d", i);
+
+		cout << "converted_number " << converted_number;
+		send(sock, converted_number, 8, 0);
+
+		char temp_buf[8];
+		recv(sock, temp_buf, 8, 0);
 
 		send(sock, tab2, sizeof(tab2), 0);
 
