@@ -9,6 +9,8 @@ using namespace std;
 
 int main()
 {
+	int buffer3 = 256;
+
 	// initialze winsock
 
 	WSADATA wsData;
@@ -93,8 +95,11 @@ int main()
 			char buffer[8];
 			recv(clientSocket, buffer, 8, 0);
 			send(clientSocket, "K", 8, 0);
-			int buffer2 = (int)buffer;
-			int bytesRecv = recv(clientSocket, buf2, sizeof(buf2), 0);
+
+			int buffer2 = atoi(buffer) + 1;
+		
+
+			int bytesRecv = recv(clientSocket, buf2, buffer2, 0);
 
 
 			if (bytesRecv == SOCKET_ERROR) {
