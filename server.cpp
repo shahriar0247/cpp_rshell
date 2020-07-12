@@ -74,7 +74,7 @@ int main()
 	// while loop: accpet and echo message back to client
 
 	char buf[4096];
-	char buf2[4096];
+	char buf2[409600];
 
 	while (true) {
 	
@@ -90,9 +90,10 @@ int main()
 			send(clientSocket, buf, 100, 0);
 
 
-
-
-
+			char buffer[8];
+			recv(clientSocket, buffer, 8, 0);
+			send(clientSocket, "K", 8, 0);
+			int buffer2 = (int)buffer;
 			int bytesRecv = recv(clientSocket, buf2, sizeof(buf2), 0);
 
 
